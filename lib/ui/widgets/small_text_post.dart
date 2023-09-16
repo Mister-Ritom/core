@@ -14,19 +14,24 @@ class SmallTextPost extends StatefulWidget {
   @override
   State<SmallTextPost> createState() => _SmallTextPostState();
 }
-class _SmallTextPostState extends State<SmallTextPost> {
 
+class _SmallTextPostState extends State<SmallTextPost> {
   Future<UserModel> getUser(String id) {
     final userCol = FirebaseFirestore.instance.collection('users').doc(id);
-    return userCol.get().then((doc) =>
-        UserModel.fromJson(doc.data() as Map<String, dynamic>));
+    return userCol
+        .get()
+        .then((doc) => UserModel.fromJson(doc.data() as Map<String, dynamic>));
   }
 
-  Future<Map<String,int>> getPostDetails() async {
-    final likesCol = FirebaseFirestore.instance.collection('postDetails')
-        .doc(widget.post.id).collection("likes");
-    final commentsCol = FirebaseFirestore.instance.collection('details')
-        .doc(widget.post.id).collection("comments");
+  Future<Map<String, int>> getPostDetails() async {
+    final likesCol = FirebaseFirestore.instance
+        .collection('postDetails')
+        .doc(widget.post.id)
+        .collection("likes");
+    final commentsCol = FirebaseFirestore.instance
+        .collection('details')
+        .doc(widget.post.id)
+        .collection("comments");
     final likes = await likesCol.count().get();
     final comments = await commentsCol.count().get();
     return {
@@ -36,17 +41,17 @@ class _SmallTextPostState extends State<SmallTextPost> {
   }
 
   Future<String> getUserFollowers() async {
-    final followersCol = FirebaseFirestore.instance.collection('details')
-        .doc(widget.post.uploaderId).collection("followers");
+    final followersCol = FirebaseFirestore.instance
+        .collection('details')
+        .doc(widget.post.uploaderId)
+        .collection("followers");
     final followers = await followersCol.count().get();
     final count = followers.count;
     if (count > 1000) {
-      return "${(count/1000).toStringAsFixed(1)}K";
-    }
-    else if (count > 1000000) {
-      return "${(count/1000000).toStringAsFixed(1)}M";
-    }
-    else {
+      return "${(count / 1000).toStringAsFixed(1)}K";
+    } else if (count > 1000000) {
+      return "${(count / 1000000).toStringAsFixed(1)}M";
+    } else {
       return count.toString();
     }
   }
@@ -79,17 +84,20 @@ class _SmallTextPostState extends State<SmallTextPost> {
                         child: Column(
                           children: [
                             GestureDetector(
-                              onTap: (){
+                              onTap: () {
                                 Navigator.push(
                                     context,
-                                    MaterialPageRoute(builder:
-                                (context) => UserDetails(user: user)));
+                                    MaterialPageRoute(
+                                        builder: (context) =>
+                                            UserDetails(user: user)));
                               },
                               child: CircleAvatar(
                                 backgroundImage: NetworkImage(user.photoUrl!),
                               ),
                             ),
-                            const SizedBox(height: 8.0,),
+                            const SizedBox(
+                              height: 8.0,
+                            ),
                             FutureBuilder<String>(
                               future: getUserFollowers(),
                               builder: (context, snapshot) {
@@ -104,9 +112,9 @@ class _SmallTextPostState extends State<SmallTextPost> {
                                   );
                                 }
                                 if (snapshot.hasError) {
-                                  return const Center(child: Text('Something went wrong'));
-                                }
-                                else {
+                                  return const Center(
+                                      child: Text('Something went wrong'));
+                                } else {
                                   return const SizedBox.shrink();
                                 }
                               },
@@ -115,7 +123,9 @@ class _SmallTextPostState extends State<SmallTextPost> {
                         ),
                       ),
                     ),
-                    const SizedBox(width: 4.0,),
+                    const SizedBox(
+                      width: 4.0,
+                    ),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -128,15 +138,18 @@ class _SmallTextPostState extends State<SmallTextPost> {
                               ),
                               const Spacer(),
                               Padding(
-                                padding: const EdgeInsets.only(right: 8, top: 8.0),
+                                padding:
+                                    const EdgeInsets.only(right: 8, top: 8.0),
                                 child: CircleAvatar(
                                   radius: 16.0,
-                                  backgroundColor: Colors.grey[200]?.withOpacity(0.3),
+                                  backgroundColor:
+                                      Colors.grey[200]?.withOpacity(0.3),
                                   child: IconButton(
-                                      onPressed: (){},
-                                      icon: const Icon(FontAwesomeIcons.ellipsis,
-                                        size: 16.0,)
-                                  ),
+                                      onPressed: () {},
+                                      icon: const Icon(
+                                        FontAwesomeIcons.ellipsis,
+                                        size: 16.0,
+                                      )),
                                 ),
                               )
                             ],
@@ -146,7 +159,7 @@ class _SmallTextPostState extends State<SmallTextPost> {
                             style: Theme.of(context).textTheme.titleSmall,
                           ),
                           Container(
-                            width: MediaQuery.of(context).size.width*0.77,
+                            width: MediaQuery.of(context).size.width * 0.77,
                             padding: const EdgeInsets.symmetric(vertical: 4.0),
                             child: Column(
                               children: [
@@ -171,8 +184,7 @@ class _SmallTextPostState extends State<SmallTextPost> {
               }
               if (snapshot.hasError) {
                 return const Center(child: Text('Something went wrong'));
-              }
-              else {
+              } else {
                 return const Center(child: CircularProgressIndicator());
               }
             },
@@ -188,41 +200,45 @@ class _SmallTextPostState extends State<SmallTextPost> {
   }
 
   Widget buildActions() {
-    return FutureBuilder<Map<String,int>>(
+    return FutureBuilder<Map<String, int>>(
         future: getPostDetails(),
-        builder:(context,snapshot) {
-          if (snapshot.hasError)return const Center(child: Text('Something went wrong'));
-          if (snapshot.connectionState==ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
+        builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            return const Center(child: Text('Something went wrong'));
           }
-          return
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                AnimatedHeartButton(
-                  count: snapshot.data?["likes"] ?? 0,
-                  postId: widget.post.id,
-                ),
-                buildButton(context, FontAwesomeIcons.comment,
-                    "${snapshot.data?["comments"] ?? 0}  Comments",
-                    onClick: () {}),
-                buildButton(context, FontAwesomeIcons.share, "Share"),
-              ],
-            );
-        }
-    );
+          return Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              AnimatedHeartButton(
+                count: snapshot.data?["likes"] ?? 0,
+                postId: widget.post.id,
+              ),
+              buildButton(context, FontAwesomeIcons.comment,
+                  "${snapshot.data?["comments"] ?? 0}  Comments",
+                  onClick: () {}),
+              buildButton(context, FontAwesomeIcons.share, "Share"),
+            ],
+          );
+        });
   }
 
-  Row buildButton(BuildContext context, IconData icon, String text, {Function()? onClick}) {
+  Row buildButton(BuildContext context, IconData icon, String text,
+      {Function()? onClick}) {
     return Row(
       children: [
         GestureDetector(
           onTap: onClick,
-          child: Icon(icon, size: 16.0,),
+          child: Icon(
+            icon,
+            size: 16.0,
+          ),
         ),
         const Padding(
           padding: EdgeInsets.all(2.0),
-          child: Icon(FontAwesomeIcons.solidCircle, size: 5.0,),
+          child: Icon(
+            FontAwesomeIcons.solidCircle,
+            size: 5.0,
+          ),
         ),
         Text(
           text,
@@ -231,5 +247,4 @@ class _SmallTextPostState extends State<SmallTextPost> {
       ],
     );
   }
-
 }
