@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "357937556372",
+    "project_id": "core-blaze",
+    "storage_bucket": "core-blaze.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:357937556372:android:b0b127f69c2d962341fd81",
+        "android_client_info": {
+          "package_name": "site.ritom.core"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAmpdeyTdhnGoqdy4cdoa3bZT1kK7j8CAM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
