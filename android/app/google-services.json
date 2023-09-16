@@ -12,7 +12,12 @@
           "package_name": "site.ritom.core"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "357937556372-ta3oa95iqh9b5gj0qjk776lr9qnjk2g8.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyAmpdeyTdhnGoqdy4cdoa3bZT1kK7j8CAM"
@@ -20,7 +25,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "357937556372-ta3oa95iqh9b5gj0qjk776lr9qnjk2g8.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "357937556372-uqid78qt0vanpbknpehh3lheamptc20i.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "site.ritom.core"
+              }
+            }
+          ]
         }
       }
     }

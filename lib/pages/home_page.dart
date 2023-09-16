@@ -1,0 +1,251 @@
+import 'dart:ui';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:core/ui/widgets/small_image_post.dart';
+import 'package:core/ui/widgets/small_story_widget.dart';
+import 'package:core/ui/widgets/small_text_post.dart';
+import 'package:core/utils/models/post_model.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:story_creator_plus/story_creator.dart';
+import 'package:uuid/uuid.dart';
+import 'package:visibility_detector/visibility_detector.dart';
+
+import '../utils/models/story_model.dart';
+
+class HomePage extends StatefulWidget {
+  const HomePage({Key? key}) : super(key: key);
+
+  @override
+  State<HomePage> createState() => _HomeState();
+}
+
+class _HomeState extends State<HomePage> {
+  final posts = <Post>[];
+
+  Future<List<String>> getFollowings() async {
+    final currentUserFollowingCol = FirebaseFirestore.instance.collection('details')
+        .doc(FirebaseAuth.instance.currentUser!.uid).collection("following");
+    final QuerySnapshot followingSnapshot = await currentUserFollowingCol.get();
+    final ids = <String>[];
+    ids.add(FirebaseAuth.instance.currentUser!.uid);
+    ids.addAll(followingSnapshot.docs.map((doc) => doc.id).toList());
+    ids.shuffle();
+    return ids;
+  }
+
+  Future<List<Post>> getPosts(String userId) async {
+    final postCol = FirebaseFirestore.instance.collection('posts')
+        .where('uploaderId', isEqualTo: userId)
+        .orderBy('timestamp', descending: true)
+        .limit(10);
+    final QuerySnapshot postSnapshot = await postCol.get();
+    final posts = postSnapshot.docs.map((doc) =>
+        Post.fromJson(doc.data() as Map<String, dynamic>)).toList();
+    posts.shuffle();
+    return posts;
+  }
+
+  Stream<QuerySnapshot<Map<String, dynamic>>> getStories(String userId) {
+    // Get the current timestamp
+    DateTime now = DateTime.now();
+
+    // Calculate the timestamp 24 hours ago
+    DateTime twentyFourHoursAgo = now.subtract(const Duration(hours: 24));
+    final storyCol = FirebaseFirestore.instance.collection('stories')
+        .where('timestamp',
+        isGreaterThanOrEqualTo: Timestamp.fromDate(twentyFourHoursAgo))
+        .where('timestamp', isLessThanOrEqualTo: Timestamp.fromDate(now))
+        .where('uploaderId', isEqualTo: userId)
+        .orderBy('timestamp', descending: true);
+
+    return storyCol.snapshots();
+  }
+
+  Future<void> onState() async {
+    final newFollowings = await getFollowings();
+    final newPosts = <Post>[];
+    newPosts.add(Post(id: "story",image: null,uploaderId: "story",
+        caption: 'story', description: ''));
+    for (final following in newFollowings) {
+      final followerPosts = await getPosts(following);
+      newPosts.addAll(followerPosts);
+    }
+    setState(() {
+      newPosts.sort((a, b) => b.timestamp.millisecondsSinceEpoch.compareTo(a.timestamp.millisecondsSinceEpoch));
+    });
+    setState(() {
+      posts.clear();
+      posts.addAll(newPosts);
+    });
+  }
+
+  Future<void> setViews(String postId) async {
+    final viewCol = FirebaseFirestore.instance.collection('postDetails')
+        .doc(postId).collection("views");
+    final viewsDoc = await viewCol.doc(FirebaseAuth.instance.currentUser!.uid).get();
+    if (!viewsDoc.exists) {
+      final uniqueId = UniqueKey().toString();
+      await viewCol.doc(FirebaseAuth.instance.currentUser!.uid).set({
+        "actionId" : uniqueId,
+      });
+    }
+  }
+
+  Future<void> _createStory() async {
+    final result = await Navigator.push(
+      context, MaterialPageRoute(builder: (context) => const StoryCreator())
+    ) as StoryCreatorResult?;
+    if (result!=null) {
+      final caption = result.caption;
+      final image = result.image;
+      final id = const Uuid().v4();
+      final userId = FirebaseAuth.instance.currentUser!.uid;
+      final storageRef = FirebaseStorage.instance.ref().child('images').child("stories")
+          .child(userId).child(id);
+      final task = storageRef.putData(image.bytes);
+      final snapshot = await task.whenComplete(() {});
+      final downloadUrl = await snapshot.ref.getDownloadURL();
+      final story = Story(
+        id: id,
+        uploaderId: userId,
+        caption: caption,
+        image: downloadUrl,
+      );
+      final storyCol = FirebaseFirestore.instance.collection('stories');
+      await storyCol.doc(id).set(story.toJson());
+    }
+  }
+
+  @override
+  void initState() {
+    onState();
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    //return a list builder with posts
+    return ListView.builder(
+        itemCount: posts.length,
+        itemBuilder: (context, index) {
+          final post = posts[index];
+          if (post.id=="story") {
+            //get a list of all followers then get all stories of them and return story widget
+            return FutureBuilder<List<String>>(
+              future: getFollowings(),
+              builder: (context, snapshot) {
+                if (snapshot.hasData) {
+                  final followerIds = snapshot.data!;
+                  //return a list of followers stories
+                  return Card(
+                    margin: const EdgeInsets.only(top: 4,left: 8,right: 8),
+                    elevation: 6,
+                    child: SizedBox(
+                      height: 120,
+                      child: Padding(
+                        padding: const EdgeInsets.all(4.0),
+                        child: buildStoryList(followerIds),
+                      ),
+                    ),
+                  );
+
+                }
+                else {
+                  return const SizedBox.shrink();
+                }
+              },
+            );
+          }
+          return VisibilityDetector(
+            key: Key(index.toString()),
+            onVisibilityChanged: (info) {
+              final visiblePercentage = info.visibleFraction * 100;
+              if (visiblePercentage>50) {
+                setViews(post.id);
+              }
+            },
+            child: post.image!=null ? SmallImagePost(post: post,) : SmallTextPost(post: post,),
+          );
+        },
+      );
+  }
+
+  ListView buildStoryList(List<String> followerIds) {
+    return ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: followerIds.length,
+                      itemBuilder: (context, index) {
+                        if (index==0) {
+                          return Container(
+                            width: 90,
+                            height: 110,
+                            decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(12)
+                            ),
+                            clipBehavior: Clip.hardEdge,
+                            child: Stack(
+                              children: [
+                                Center(
+                                  child: SizedBox(
+                                    width: 85,
+                                    height: 105,
+                                    child: Image.network(
+                                        FirebaseAuth.instance.currentUser!.photoURL!,
+                                        fit: BoxFit.cover
+                                    ),
+                                  ),
+                                ),
+                                BackdropFilter(
+                                    filter: ImageFilter.blur(sigmaX: 2,sigmaY: 2),
+                                    child: Container(color: Colors.black.withOpacity(0.2),)
+                                ),
+                                Column(
+                                  children: [
+                                    Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Text("Add story",style: Theme.of(context).textTheme.bodySmall,),
+                                    ),
+                                    Center(
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(horizontal: 8.0,vertical: 4.0),
+                                        child: CircleAvatar(
+                                          radius: 21,
+                                          backgroundColor: Theme.of(context).colorScheme.
+                                          secondary.withOpacity(0.3),
+                                          child: IconButton(
+                                            onPressed: _createStory,
+                                            icon: const Icon(FontAwesomeIcons.plus),
+                                          ),
+                                        ),
+                                      )
+                                    ),
+                                  ],
+                                )
+                              ],
+                            ),
+                          );
+                        }
+                        final followerId = followerIds[index];
+                        return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+                          stream: getStories(followerId),
+                          builder: (context, snapshot) {
+                            if (snapshot.hasData) {
+                              final docs = snapshot.data!;
+                              final stories = docs.docs.map((e) => Story.fromJson(e.data())).toList();
+                              if (stories.isEmpty) {
+                                return const SizedBox.shrink();
+                              }
+                              return SmallStoryWidget(stories: stories,);
+                            }
+                            else {
+                              return const SizedBox.shrink();
+                            }
+                          },
+                        );
+                      },
+                    );
+  }
+}

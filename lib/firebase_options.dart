@@ -63,6 +63,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '357937556372',
     projectId: 'core-blaze',
     storageBucket: 'core-blaze.appspot.com',
+    iosClientId: '357937556372-uqid78qt0vanpbknpehh3lheamptc20i.apps.googleusercontent.com',
     iosBundleId: 'site.ritom.core',
   );
 }
