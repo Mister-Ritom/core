@@ -1,5 +1,4 @@
 import 'package:core/providers/user_provider.dart';
-import 'package:core/ui/pages/introduction_page.dart';
 import 'package:core/ui/parent_page.dart';
 import 'package:core/providers/theme.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -12,14 +11,13 @@ void main() async {
   //check if all widgets are initialized
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
-
     options: DefaultFirebaseOptions.currentPlatform,
-
   );
   runApp(
     const MyApp(),
   );
 }
+
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
@@ -41,22 +39,23 @@ class MaterialAppWithTheme extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Provider.of<ThemeChanger>(context);
-    final userProvider = Provider.of<AuthProvider>(context);
     return MaterialApp(
-      home: userProvider.user!=null?const Home(): const IntroductionPage(),
+      debugShowCheckedModeBanner: false,
+      home: const ParentPage(),
       theme: ThemeData.light(useMaterial3: true).copyWith(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.indigo, brightness: Brightness.light),
+        colorScheme: ColorScheme.fromSeed(
+            seedColor: Colors.indigo, brightness: Brightness.light),
         bottomNavigationBarTheme: const BottomNavigationBarThemeData(
           showUnselectedLabels: false,
           type: BottomNavigationBarType.fixed,
           enableFeedback: true,
-          backgroundColor: Colors.white54,
+          backgroundColor: Colors.black12,
           selectedItemColor: Colors.indigo,
           unselectedItemColor: Colors.black38,
         ),
       ),
       darkTheme: ThemeData.dark(useMaterial3: true).copyWith(
-        bottomNavigationBarTheme:  const BottomNavigationBarThemeData(
+        bottomNavigationBarTheme: const BottomNavigationBarThemeData(
           showUnselectedLabels: false,
           type: BottomNavigationBarType.fixed,
           enableFeedback: true,

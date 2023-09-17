@@ -5,22 +5,30 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class AnimatedHeartButton extends StatefulWidget {
   final String postId;
+  final bool isLiikedbyUser;
   final int count;
-  const AnimatedHeartButton({super.key, required this.count, required this.postId});
+  const AnimatedHeartButton(
+      {super.key,
+      required this.count,
+      required this.postId,
+      required this.isLiikedbyUser});
   @override
   State<AnimatedHeartButton> createState() => _AnimatedHeartButtonState();
 }
 
 class _AnimatedHeartButtonState extends State<AnimatedHeartButton>
     with SingleTickerProviderStateMixin {
-  bool _liked = false;
-  var likes = 0;
   late AnimationController _controller;
   late Animation<double> _animation;
+  bool _liked = false;
+  int likes = 0;
 
   @override
   void initState() {
-    likes = widget.count;
+    setState(() {
+      _liked = widget.isLiikedbyUser;
+      likes = widget.count;
+    });
     _controller = AnimationController(
       duration: const Duration(milliseconds: 300),
       vsync: this,
@@ -34,56 +42,43 @@ class _AnimatedHeartButtonState extends State<AnimatedHeartButton>
       }
     });
     super.initState();
-    if (mounted) {
-      isLikedByUser().then((value) => setState(() {
-        _liked = value;
-      }));
-    }
   }
+
   @override
   void dispose() {
     _controller.dispose();
-    _liked = false;
     super.dispose();
   }
 
-  Future<bool> isLikedByUser() async {
-    final likesCol = FirebaseFirestore.instance.collection('postDetails')
-        .doc(widget.postId).collection("likes");
-    final currentUserId = FirebaseAuth.instance.currentUser!.uid;
-    final like = await likesCol.doc(currentUserId).get();
-    return like.exists;
-  }
-
   Future<void> setLikeDatabase() async {
-    final likesCol = FirebaseFirestore.instance.collection('postDetails')
-        .doc(widget.postId).collection("likes");
+    final likesCol = FirebaseFirestore.instance
+        .collection('postDetails')
+        .doc(widget.postId)
+        .collection("likes");
     final currentUserId = FirebaseAuth.instance.currentUser!.uid;
-    if (_liked) {
+    if (!_liked) {
       final id = UniqueKey().toString();
       await likesCol.doc(currentUserId).set({
         "timestamp": DateTime.now(),
         "actionId": id,
       });
-    }
-    else {
+    } else {
       await likesCol.doc(currentUserId).delete();
     }
   }
 
   void _handleTap() async {
+    await setLikeDatabase();
     setState(() {
       _liked = !_liked;
       if (_liked) {
         _controller.forward();
         likes++;
-      }
-      else {
+      } else {
         _controller.reverse();
         likes--;
       }
     });
-    await setLikeDatabase();
   }
 
   @override
@@ -100,9 +95,12 @@ class _AnimatedHeartButtonState extends State<AnimatedHeartButton>
                 child: RotationTransition(
                   turns: _controller,
                   child: Icon(
-                    _liked? FontAwesomeIcons.solidHeart : FontAwesomeIcons.heart,
-                    color: _liked ? Colors.red :
-                    Theme.of(context).colorScheme.inverseSurface,
+                    _liked
+                        ? FontAwesomeIcons.solidHeart
+                        : FontAwesomeIcons.heart,
+                    color: _liked
+                        ? Colors.red
+                        : Theme.of(context).colorScheme.inverseSurface,
                     size: 16,
                   ),
                 ),
@@ -111,7 +109,10 @@ class _AnimatedHeartButtonState extends State<AnimatedHeartButton>
           ),
           const Padding(
             padding: EdgeInsets.all(2.0),
-            child: Icon(FontAwesomeIcons.solidCircle, size: 5.0,),
+            child: Icon(
+              FontAwesomeIcons.solidCircle,
+              size: 5.0,
+            ),
           ),
           Text(
             "$likes likes",

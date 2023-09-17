@@ -22,6 +22,9 @@ class _SignInPageState extends State<SignInPage> {
   final _formKey = GlobalKey<FormState>();
 
   void _signIn() async {
+    if (FirebaseAuth.instance.currentUser != null) {
+      Navigator.pop(context);
+    }
     final isValid = _formKey.currentState!.validate();
     if (!isValid) {
       return;
@@ -94,6 +97,9 @@ class _SignInPageState extends State<SignInPage> {
   }
 
   Future<void> signIn(int provider) async {
+    if (FirebaseAuth.instance.currentUser != null) {
+      Navigator.pop(context);
+    }
     try {
       switch (provider) {
         case 0:
@@ -109,7 +115,7 @@ class _SignInPageState extends State<SignInPage> {
             content: Text('Signed in'),
           ),
         );
-        Provider.of<AuthProvider>(context, listen: false)
+        Provider.of<AuthProvider>(context)
             .setUser(FirebaseAuth.instance.currentUser);
         Navigator.pop(context);
       }

@@ -27,6 +27,9 @@ class _SignupPageState extends State<SignupPage> {
   final _formKey = GlobalKey<FormState>();
 
   void _submitForm() {
+    if (FirebaseAuth.instance.currentUser != null) {
+      Navigator.pop(context);
+    }
     final isValid = _formKey.currentState!.validate();
     if (!isValid) {
       return;
@@ -68,6 +71,9 @@ class _SignupPageState extends State<SignupPage> {
   }
 
   Future<void> signIn(int provider) async {
+    if (FirebaseAuth.instance.currentUser != null) {
+      Navigator.pop(context);
+    }
     try {
       UserCredential userCredential;
       switch (provider) {
@@ -110,16 +116,16 @@ class _SignupPageState extends State<SignupPage> {
               .collection('users')
               .doc(userCredential.user!.uid)
               .set(userModel.toJson());
-          if (context.mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('User created successfully.'),
-              ),
-            );
-            Provider.of<AuthProvider>(context, listen: false)
-                .setUser(FirebaseAuth.instance.currentUser);
-            Navigator.pop(context);
-          }
+        }
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('User created successfully.'),
+            ),
+          );
+          Provider.of<AuthProvider>(context)
+              .setUser(FirebaseAuth.instance.currentUser);
+          Navigator.pop(context);
         }
       }
     } on FirebaseAuthException catch (e) {

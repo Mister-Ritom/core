@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:core/ui/pages/image_fullscreen.dart';
 import 'package:core/ui/widgets/animated_title.dart';
 import 'package:core/utils/models/post_model.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
@@ -74,10 +75,14 @@ class _SmallImagePostState extends State<SmallImagePost> {
                         : GestureDetector(
                             onTap: () {
                               Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) =>
-                                          UserDetails(user: user)));
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => UserDetails(
+                                    user: user.id,
+                                    showAppbar: true,
+                                  ),
+                                ),
+                              );
                             },
                             child: CircleAvatar(
                               backgroundImage: NetworkImage(user.photoUrl!),
@@ -159,6 +164,16 @@ class _SmallImagePostState extends State<SmallImagePost> {
     );
   }
 
+  Future<bool> isLikedByUser() async {
+    final likesCol = FirebaseFirestore.instance
+        .collection('postDetails')
+        .doc(widget.post.id)
+        .collection("likes");
+    final currentUserId = FirebaseAuth.instance.currentUser!.uid;
+    final like = await likesCol.doc(currentUserId).get();
+    return like.exists;
+  }
+
   Widget buildActions() {
     return FutureBuilder<Map<String, int>>(
         future: getDetails(),
@@ -169,9 +184,20 @@ class _SmallImagePostState extends State<SmallImagePost> {
           return Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              AnimatedHeartButton(
-                count: snapshot.data?["likes"] ?? 0,
-                postId: widget.post.id,
+              FutureBuilder(
+                future: isLikedByUser(),
+                builder: (context, snapshot2) {
+                  if (snapshot2.hasData) {
+                    final liked = snapshot2.data as bool;
+                    return AnimatedHeartButton(
+                      isLiikedbyUser: liked,
+                      postId: widget.post.id,
+                      count: snapshot.data?["likes"] ?? 0,
+                    );
+                  } else {
+                    return const SizedBox.shrink();
+                  }
+                },
               ),
               buildButton(context, FontAwesomeIcons.comment,
                   "${snapshot.data?["comments"] ?? 0}  Comments",

@@ -17,6 +17,9 @@ class AuthProvider extends ChangeNotifier {
   void setUser(User? user) {
     _user = user;
     notifyListeners();
+    if (user != null) {
+      FirebaseCrashlytics.instance.setUserIdentifier(user.uid);
+    }
   }
 
   Future<void> signOut() async {
@@ -24,7 +27,7 @@ class AuthProvider extends ChangeNotifier {
       await _auth.signOut();
       _user = null;
       notifyListeners();
-    } catch (e,s) {
+    } catch (e, s) {
       debugPrint(e.toString());
       FirebaseCrashlytics.instance.recordError(e, s);
     }

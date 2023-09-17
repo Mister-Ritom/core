@@ -13,8 +13,8 @@ class SearchPage extends StatefulWidget {
   @override
   State<SearchPage> createState() => _SearchState();
 }
-class _SearchState extends State<SearchPage> {
 
+class _SearchState extends State<SearchPage> {
   var creatorQuery = "";
   var postQuery = "";
 
@@ -22,9 +22,13 @@ class _SearchState extends State<SearchPage> {
     //create a firestore query with query string
     if (creatorQuery.isNotEmpty) {
       //if query is not empty, search for users
-      final users = await FirebaseFirestore.instance.
-      collection('users').orderBy("username").startAt([creatorQuery])
-          .endAt(['$creatorQuery\uf8ff']).limit(10).get();
+      final users = await FirebaseFirestore.instance
+          .collection('users')
+          .orderBy("username")
+          .startAt([creatorQuery])
+          .endAt(['$creatorQuery\uf8ff'])
+          .limit(10)
+          .get();
       //convert the user documents to user models
       return users.docs.map((user) => UserModel.fromJson(user.data())).toList();
     }
@@ -36,9 +40,13 @@ class _SearchState extends State<SearchPage> {
     //create a firestore query with query string
     if (postQuery.isNotEmpty) {
       //if query is not empty, search for posts
-      final posts = await FirebaseFirestore.instance.
-      collection('posts').orderBy("caption").startAt([postQuery])
-          .endAt(['$postQuery\uf8ff']).limit(25).get();
+      final posts = await FirebaseFirestore.instance
+          .collection('posts')
+          .orderBy("caption")
+          .startAt([postQuery])
+          .endAt(['$postQuery\uf8ff'])
+          .limit(25)
+          .get();
       //convert the post documents to post models
       return posts.docs.map((post) => Post.fromJson(post.data())).toList();
     }
@@ -65,40 +73,41 @@ class _SearchState extends State<SearchPage> {
               decoration: const InputDecoration(
                 border: OutlineInputBorder(),
                 labelText: 'Search',
-                prefixIcon: Icon(FontAwesomeIcons.magnifyingGlass, size: 18,),
+                prefixIcon: Icon(
+                  FontAwesomeIcons.magnifyingGlass,
+                  size: 18,
+                ),
               ),
             ),
           ),
         ),
         Expanded(
             child: FutureBuilder<List<Post>>(
-              future: _searchPost(),
-              builder: (context, snapshot) {
-                if (snapshot.hasData) {
-                  final posts = snapshot.data!;
-                  return ListView.builder(
-                    itemCount: posts.length,
-                    itemBuilder: (context, index) {
-                      final post = posts[index];
-                      if (post.image==null) {
-                        return SmallTextPost(post: post);
-                      }
-                      else {
-                        return SmallImagePost(post: post);
-                      }
-                    },
-                  );
-                } else if (snapshot.hasError) {
-                  return Center(child: Text(snapshot.error.toString()));
-                }
-                return const Center(child: CircularProgressIndicator());
-              },
-            )
-        )
+          future: _searchPost(),
+          builder: (context, snapshot) {
+            if (snapshot.hasData) {
+              final posts = snapshot.data!;
+              return ListView.builder(
+                itemCount: posts.length,
+                itemBuilder: (context, index) {
+                  final post = posts[index];
+                  if (post.image == null) {
+                    return SmallTextPost(post: post);
+                  } else {
+                    return SmallImagePost(post: post);
+                  }
+                },
+              );
+            } else if (snapshot.hasError) {
+              return Center(child: Text(snapshot.error.toString()));
+            }
+            return const Center(child: CircularProgressIndicator());
+          },
+        ))
       ],
     );
   }
-  
+
   Widget buildCreatorSearch(BuildContext context) {
     return Column(
       children: [
@@ -117,44 +126,59 @@ class _SearchState extends State<SearchPage> {
               decoration: const InputDecoration(
                 border: OutlineInputBorder(),
                 labelText: 'Search',
-                prefixIcon: Icon(FontAwesomeIcons.magnifyingGlass, size: 18,),
+                prefixIcon: Icon(
+                  FontAwesomeIcons.magnifyingGlass,
+                  size: 18,
+                ),
               ),
             ),
           ),
         ),
         Expanded(
             child: FutureBuilder<List<UserModel>>(
-              future: _searchCreator(),
-              builder: (context, snapshot) {
-                if (snapshot.hasData) {
-                  final users = snapshot.data!;
-                  return ListView.builder(
-                    itemCount: users.length,
-                    itemBuilder: (context, index) {
-                      final user = users[index];
-                      return ListTile(
-                        onTap: () {
-                          Navigator.of(context)
-                              .push(MaterialPageRoute(
-                              builder: (context) { return UserDetails(user: user); }));
-                        },
-                        leading: user.photoUrl==null?null: CircleAvatar(
-                          backgroundImage: NetworkImage(user.photoUrl!),
+          future: _searchCreator(),
+          builder: (context, snapshot) {
+            if (snapshot.hasData) {
+              final users = snapshot.data!;
+              return ListView.builder(
+                itemCount: users.length,
+                itemBuilder: (context, index) {
+                  final user = users[index];
+                  return ListTile(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => UserDetails(
+                            user: user.id,
+                            showAppbar: true,
+                          ),
                         ),
-                        title: Text(user.name),
-                        subtitle: user.bio==null?null :
-                        Text(user.bio!, maxLines: 1, overflow: TextOverflow.ellipsis,),
-                        trailing: const Icon(FontAwesomeIcons.arrowRight),
                       );
                     },
+                    leading: user.photoUrl == null
+                        ? null
+                        : CircleAvatar(
+                            backgroundImage: NetworkImage(user.photoUrl!),
+                          ),
+                    title: Text(user.name),
+                    subtitle: user.bio == null
+                        ? null
+                        : Text(
+                            user.bio!,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                    trailing: const Icon(FontAwesomeIcons.arrowRight),
                   );
-                } else if (snapshot.hasError) {
-                  return Center(child: Text(snapshot.error.toString()));
-                }
-                return const Center(child: CircularProgressIndicator());
-              },
-            )
-        )
+                },
+              );
+            } else if (snapshot.hasError) {
+              return Center(child: Text(snapshot.error.toString()));
+            }
+            return const Center(child: CircularProgressIndicator());
+          },
+        ))
       ],
     );
   }
@@ -170,22 +194,29 @@ class _SearchState extends State<SearchPage> {
             bottom: TabBar(
               dividerColor: Theme.of(context).colorScheme.inverseSurface,
               tabs: const [
-                Tab(icon: Icon(FontAwesomeIcons.faceSmileWink), text: 'Posts',),
-                Tab(icon: Icon(FontAwesomeIcons.user), text: 'Creators',),
-                Tab(icon: Icon(FontAwesomeIcons.comment), text: 'Chats',),
+                Tab(
+                  icon: Icon(FontAwesomeIcons.faceSmileWink),
+                  text: 'Posts',
+                ),
+                Tab(
+                  icon: Icon(FontAwesomeIcons.user),
+                  text: 'Creators',
+                ),
+                Tab(
+                  icon: Icon(FontAwesomeIcons.comment),
+                  text: 'Chats',
+                ),
               ],
             ),
             toolbarHeight: 0,
           ),
           body: TabBarView(
             children: [
-             buildPostSearch(context),
+              buildPostSearch(context),
               buildCreatorSearch(context),
               const Center(child: Text('Chats')),
             ],
           ),
-      )
-    );
+        ));
   }
-
 }

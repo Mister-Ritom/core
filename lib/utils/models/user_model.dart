@@ -25,7 +25,8 @@ class UserModel {
     this.photoUrl,
     this.bannerUrl,
     Timestamp? timestamp, // Added timestamp parameter
-  }) : timestamp = timestamp ?? Timestamp.now(); // Set default value for timestamp
+  }) : timestamp =
+            timestamp ?? Timestamp.now(); // Set default value for timestamp
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel(
@@ -38,7 +39,8 @@ class UserModel {
       website: json['website'],
       bio: json['bio'],
       photoUrl: json['photoUrl'],
-      timestamp:json['timestamp'], // Deserialize timestamp
+      timestamp: json['timestamp'],
+      bannerUrl: json['bannerUrl'],
     );
   }
 
@@ -53,7 +55,8 @@ class UserModel {
       'website': website,
       'bio': bio,
       'photoUrl': photoUrl,
-      'timestamp': timestamp, // Serialize timestamp
+      'timestamp': timestamp,
+      'bannerurl': bannerUrl,
     };
   }
 }

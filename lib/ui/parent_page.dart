@@ -3,8 +3,9 @@ import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:core/pages/home_page.dart';
-import 'package:core/pages/profile_page.dart';
 import 'package:core/pages/search_page.dart';
+import 'package:core/ui/pages/introduction_page.dart';
+import 'package:core/ui/pages/user_details_page.dart';
 import 'package:core/utils/models/nav_button.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
@@ -19,15 +20,17 @@ import '../providers/user_provider.dart';
 import '../utils/models/post_model.dart';
 import 'dialog/create_dialog.dart';
 
-class Home extends StatefulWidget {
-  const Home({super.key});
+class ParentPage extends StatefulWidget {
+  const ParentPage({super.key});
 
   @override
-  State<Home> createState() => _HomeState();
+  State<ParentPage> createState() => _ParentPageState();
 }
 
-class _HomeState extends State<Home> {
+class _ParentPageState extends State<ParentPage> {
   void uploadPost(Post post, File? file) async {
+    //This is used here so even if the user navigates away from the page
+    // While the post is uploading, it will not stop midway
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -77,7 +80,7 @@ class _HomeState extends State<Home> {
   }
 
   var _selectedIndex = 0;
-  Widget _currentPage = const HomePage(key: ValueKey<int>(0));
+  final controller = PageController();
 
   final _buttons = [
     NavigationButton(
@@ -96,9 +99,20 @@ class _HomeState extends State<Home> {
       page: const ChatPage(key: ValueKey<int>(2)),
     ),
     NavigationButton(
-      icon: const Icon(FontAwesomeIcons.circleUser),
+      icon: FirebaseAuth.instance.currentUser != null &&
+              FirebaseAuth.instance.currentUser!.photoURL != null
+          ? CircleAvatar(
+              radius: 17,
+              backgroundImage:
+                  NetworkImage(FirebaseAuth.instance.currentUser!.photoURL!),
+            )
+          : const Icon(FontAwesomeIcons.circleUser),
       label: 'Profile',
-      page: const ProfilePage(key: ValueKey<int>(3)),
+      page: UserDetails(
+        key: const ValueKey<int>(3),
+        user: FirebaseAuth.instance.currentUser!.uid,
+        showAppbar: false,
+      ),
     ),
   ];
 
@@ -162,20 +176,28 @@ class _HomeState extends State<Home> {
 
   @override
   Widget build(BuildContext context) {
+    final userProvider = Provider.of<AuthProvider>(context);
+    if (userProvider.user == null) {
+      return const IntroductionPage();
+    }
+    return buildParentPage();
+  }
+
+  Scaffold buildParentPage() {
     return Scaffold(
         appBar: AppBar(
           elevation: 12,
           title: Text(_buttons[_selectedIndex].label),
-          leading: Icon(
-            _buttons[_selectedIndex].icon.icon,
-            size: 32,
+          leading: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: _buttons[_selectedIndex].icon,
           ),
           actions: [getAction()],
           toolbarHeight: 48,
         ),
-        body: AnimatedSwitcher(
-          duration: const Duration(milliseconds: 300),
-          child: _currentPage,
+        body: PageView(
+          controller: controller,
+          children: _buttons.map((e) => e.page).toList(),
         ),
         bottomNavigationBar: Container(
           margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
@@ -195,8 +217,9 @@ class _HomeState extends State<Home> {
               if (index != _selectedIndex) {
                 setState(() {
                   _selectedIndex = index;
-                  _currentPage = _buttons[index].page;
                 });
+                //Animate to page
+                controller.jumpToPage(index);
               }
             },
           ),
