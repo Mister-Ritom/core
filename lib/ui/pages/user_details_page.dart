@@ -9,11 +9,9 @@ import '../../utils/models/post_model.dart';
 
 class UserDetails extends StatefulWidget {
   final String user;
-  final bool showAppbar;
   const UserDetails({
     Key? key,
     required this.user,
-    required this.showAppbar,
   }) : super(key: key);
 
   @override

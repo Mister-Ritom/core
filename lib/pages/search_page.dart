@@ -151,7 +151,6 @@ class _SearchState extends State<SearchPage> {
                         MaterialPageRoute(
                           builder: (context) => UserDetails(
                             user: user.id,
-                            showAppbar: true,
                           ),
                         ),
                       );

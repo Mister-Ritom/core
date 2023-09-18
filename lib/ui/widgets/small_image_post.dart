@@ -79,7 +79,6 @@ class _SmallImagePostState extends State<SmallImagePost> {
                                 MaterialPageRoute(
                                   builder: (context) => UserDetails(
                                     user: user.id,
-                                    showAppbar: true,
                                   ),
                                 ),
                               );

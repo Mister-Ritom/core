@@ -111,7 +111,6 @@ class _ParentPageState extends State<ParentPage> {
       page: UserDetails(
         key: const ValueKey<int>(3),
         user: FirebaseAuth.instance.currentUser!.uid,
-        showAppbar: false,
       ),
     ),
   ];

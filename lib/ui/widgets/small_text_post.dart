@@ -91,7 +91,6 @@ class _SmallTextPostState extends State<SmallTextPost> {
                                   MaterialPageRoute(
                                     builder: (context) => UserDetails(
                                       user: user.id,
-                                      showAppbar: true,
                                     ),
                                   ),
                                 );
