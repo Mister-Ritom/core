@@ -100,7 +100,7 @@ class _HomeState extends State<HomePage> {
       await storyCol.doc(id).set(story.toJson());
     }
   }
-
+  final posts = [];
   @override
   Widget build(BuildContext context) {
     //Return a stream of posts
@@ -117,7 +117,6 @@ class _HomeState extends State<HomePage> {
             builder: (context, snapshot) {
               if (snapshot.hasData) {
                 final docs = snapshot.data!;
-                final posts = [];
                 posts.add(
                   Post(
                     id: "story",
@@ -129,6 +128,7 @@ class _HomeState extends State<HomePage> {
                 );
                 posts.addAll(
                     docs.docs.map((e) => Post.fromJson(e.data())).toList());
+                posts.sort((a, b) => b.timestamp.compareTo(a.timestamp));
                 return ListView.builder(
                   itemCount: posts.length,
                   itemBuilder: (context, index) {

@@ -168,6 +168,7 @@ class _ParentPageState extends State<ParentPage> {
               Provider.of<AuthProvider>(context, listen: false);
           await authProvider.signOut();
         }
+        
       });
     }
     return const SizedBox.shrink();

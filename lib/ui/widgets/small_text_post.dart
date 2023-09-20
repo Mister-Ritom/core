@@ -229,7 +229,7 @@ class _SmallTextPostState extends State<SmallTextPost> {
                   if (snapshot2.hasData) {
                     final liked = snapshot2.data as bool;
                     return AnimatedHeartButton(
-                      isLiikedbyUser: liked,
+                      isLiked: liked,
                       postId: widget.post.id,
                       count: snapshot.data?["likes"] ?? 0,
                     );

@@ -476,7 +476,7 @@ class _UserDetailsState extends State<UserDetails> {
             ElevatedButton(onPressed: () {}, child: const Text("Edit Account")),
             ElevatedButton(onPressed: () {}, child: const Text("Logout")),
             SelectableText(
-                "Email: ${FirebaseAuth.instance.currentUser!.email}}"),
+                "Email: ${FirebaseAuth.instance.currentUser!.email}"),
           ],
         ),
       );

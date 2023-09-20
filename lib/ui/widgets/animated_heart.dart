@@ -5,13 +5,19 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class AnimatedHeartButton extends StatefulWidget {
   final String postId;
-  final bool isLiikedbyUser;
+  final bool isLiked;
   final int count;
+  final int width;
+
   const AnimatedHeartButton(
       {super.key,
       required this.count,
       required this.postId,
-      required this.isLiikedbyUser});
+      required this.isLiked,
+        int? width
+      }
+  ): width = width ?? 100;
+
   @override
   State<AnimatedHeartButton> createState() => _AnimatedHeartButtonState();
 }
@@ -26,7 +32,7 @@ class _AnimatedHeartButtonState extends State<AnimatedHeartButton>
   @override
   void initState() {
     setState(() {
-      _liked = widget.isLiikedbyUser;
+      _liked = widget.isLiked;
       likes = widget.count;
     });
     _controller = AnimationController(
@@ -81,44 +87,57 @@ class _AnimatedHeartButtonState extends State<AnimatedHeartButton>
     });
   }
 
+  List<Widget> getChildren() {
+    return [
+      AnimatedBuilder(
+        animation: _animation,
+        builder: (context, child) {
+          return Transform.scale(
+            scale: _animation.value,
+            child: RotationTransition(
+              turns: _controller,
+              child: Icon(
+                _liked
+                    ? FontAwesomeIcons.solidHeart
+                    : FontAwesomeIcons.heart,
+                color: _liked
+                    ? Colors.red
+                    : Theme.of(context).colorScheme.inverseSurface,
+                size: 16,
+              ),
+            ),
+          );
+        },
+      ),
+      if (widget.width>90)
+      const Padding(
+        padding: EdgeInsets.all(2.0),
+        child: Icon(
+          FontAwesomeIcons.solidCircle,
+          size: 5.0,
+        ),
+      ),
+      Text(
+        "$likes likes",
+        style: TextStyle(
+          color: _liked
+              ? Colors.red
+              : Theme.of(context).colorScheme.inverseSurface,
+          fontWeight: FontWeight.bold,
+          fontSize: 12,
+        ),
+      ),
+    ];
+  }
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: _handleTap,
-      child: Row(
-        children: [
-          AnimatedBuilder(
-            animation: _animation,
-            builder: (context, child) {
-              return Transform.scale(
-                scale: _animation.value,
-                child: RotationTransition(
-                  turns: _controller,
-                  child: Icon(
-                    _liked
-                        ? FontAwesomeIcons.solidHeart
-                        : FontAwesomeIcons.heart,
-                    color: _liked
-                        ? Colors.red
-                        : Theme.of(context).colorScheme.inverseSurface,
-                    size: 16,
-                  ),
-                ),
-              );
-            },
-          ),
-          const Padding(
-            padding: EdgeInsets.all(2.0),
-            child: Icon(
-              FontAwesomeIcons.solidCircle,
-              size: 5.0,
-            ),
-          ),
-          Text(
-            "$likes likes",
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
-        ],
+      child: widget.width>90? Row(
+        children:getChildren(),
+      ) : Column(
+        children: getChildren(),
       ),
     );
   }
