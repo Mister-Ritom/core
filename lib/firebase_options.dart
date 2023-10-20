@@ -17,10 +17,7 @@ import 'package:flutter/foundation.dart'
 class DefaultFirebaseOptions {
   static FirebaseOptions get currentPlatform {
     if (kIsWeb) {
-      throw UnsupportedError(
-        'DefaultFirebaseOptions have not been configured for web - '
-        'you can reconfigure this by running the FlutterFire CLI again.',
-      );
+      return web;
     }
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
@@ -28,10 +25,7 @@ class DefaultFirebaseOptions {
       case TargetPlatform.iOS:
         return ios;
       case TargetPlatform.macOS:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for macos - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return macos;
       case TargetPlatform.windows:
         throw UnsupportedError(
           'DefaultFirebaseOptions have not been configured for windows - '
@@ -49,6 +43,16 @@ class DefaultFirebaseOptions {
     }
   }
 
+  static const FirebaseOptions web = FirebaseOptions(
+    apiKey: 'AIzaSyCGJQyTMAifWvM3fs2_7aTP3D5UfUeLYao',
+    appId: '1:357937556372:web:fce5385c00929b4441fd81',
+    messagingSenderId: '357937556372',
+    projectId: 'core-blaze',
+    authDomain: 'core-blaze.firebaseapp.com',
+    storageBucket: 'core-blaze.appspot.com',
+    measurementId: 'G-DDJ422RRYV',
+  );
+
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyAmpdeyTdhnGoqdy4cdoa3bZT1kK7j8CAM',
     appId: '1:357937556372:android:b0b127f69c2d962341fd81',
@@ -63,7 +67,19 @@ class DefaultFirebaseOptions {
     messagingSenderId: '357937556372',
     projectId: 'core-blaze',
     storageBucket: 'core-blaze.appspot.com',
+    androidClientId: '357937556372-rgk14dnfresmbaprnt5j4niejmbquija.apps.googleusercontent.com',
     iosClientId: '357937556372-uqid78qt0vanpbknpehh3lheamptc20i.apps.googleusercontent.com',
     iosBundleId: 'site.ritom.core',
+  );
+
+  static const FirebaseOptions macos = FirebaseOptions(
+    apiKey: 'AIzaSyBo3XFuV8zhrKD4pVEUhdNY-9FISk5WZ-Q',
+    appId: '1:357937556372:ios:ab83907ad6a3249041fd81',
+    messagingSenderId: '357937556372',
+    projectId: 'core-blaze',
+    storageBucket: 'core-blaze.appspot.com',
+    androidClientId: '357937556372-rgk14dnfresmbaprnt5j4niejmbquija.apps.googleusercontent.com',
+    iosClientId: '357937556372-vttjdn9e9gnmqqt8khemukug6a6j9jp0.apps.googleusercontent.com',
+    iosBundleId: 'site.ritom.core.RunnerTests',
   );
 }

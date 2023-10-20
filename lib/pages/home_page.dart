@@ -100,7 +100,9 @@ class _HomeState extends State<HomePage> {
       await storyCol.doc(id).set(story.toJson());
     }
   }
+
   final posts = [];
+  final postIds = [];
   @override
   Widget build(BuildContext context) {
     //Return a stream of posts
@@ -110,24 +112,49 @@ class _HomeState extends State<HomePage> {
         if (snapshot.hasData) {
           final docs = snapshot.data!;
           final followings = docs.docs.map((e) => e.id).toList();
-          followings.add(FirebaseAuth.instance.currentUser!.uid);
+          if (followings.isEmpty) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  const Text("Follow someone to see their posts"),
+                  ElevatedButton(
+                    onPressed: () {},
+                    child: const Text("Find people to follow"),
+                  )
+                ],
+              ),
+            );
+          }
           followings.shuffle();
           return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
             stream: getPosts(followings),
             builder: (context, snapshot) {
               if (snapshot.hasData) {
                 final docs = snapshot.data!;
-                posts.add(
-                  Post(
-                    id: "story",
-                    uploaderId: "story",
-                    image: "story",
-                    caption: "story",
-                    description: "story",
-                  ),
-                );
-                posts.addAll(
-                    docs.docs.map((e) => Post.fromJson(e.data())).toList());
+                if (!postIds.contains("story")) {
+                  posts.add(
+                    Post(
+                      id: "story",
+                      uploaderId: "story",
+                      image: "story",
+                      caption: "story",
+                      description: "story",
+                    ),
+                  );
+                  postIds.add("story");
+                }
+                final newPosts = docs.docs
+                    .map((e) => Post.fromJson(e.data()))
+                    .where((element) => !postIds.contains(element.id))
+                    .toList();
+                for (Post post in newPosts) {
+                  if (!postIds.contains(post.id)) {
+                    postIds.add(post.id);
+                    posts.add(post);
+                  }
+                }
                 posts.sort((a, b) => b.timestamp.compareTo(a.timestamp));
                 return ListView.builder(
                   itemCount: posts.length,
@@ -197,62 +224,85 @@ class _HomeState extends State<HomePage> {
   ListView buildStoryList(List<String> followerIds) {
     return ListView.builder(
       scrollDirection: Axis.horizontal,
-      itemCount: followerIds.length,
+      itemCount: followerIds.length + 1,
       itemBuilder: (context, index) {
         if (index == 0) {
-          return Container(
-            width: 90,
-            height: 110,
-            decoration: BoxDecoration(borderRadius: BorderRadius.circular(12)),
-            clipBehavior: Clip.hardEdge,
-            child: Stack(
-              children: [
-                Center(
-                  child: SizedBox(
-                    width: 85,
-                    height: 105,
-                    child: Image.network(
-                        FirebaseAuth.instance.currentUser!.photoURL!,
-                        fit: BoxFit.cover),
-                  ),
-                ),
-                BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 2, sigmaY: 2),
-                    child: Container(
-                      color: Colors.black.withOpacity(0.2),
-                    )),
-                Column(
+          return Row(
+            children: [
+              Container(
+                width: 90,
+                height: 110,
+                decoration:
+                    BoxDecoration(borderRadius: BorderRadius.circular(12)),
+                clipBehavior: Clip.hardEdge,
+                child: Stack(
                   children: [
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Text(
-                        "Add story",
-                        style: Theme.of(context).textTheme.bodySmall,
+                    Center(
+                      child: SizedBox(
+                        width: 85,
+                        height: 105,
+                        child: Image.network(
+                            FirebaseAuth.instance.currentUser!.photoURL!,
+                            fit: BoxFit.cover),
                       ),
                     ),
-                    Center(
-                        child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 8.0, vertical: 4.0),
-                      child: CircleAvatar(
-                        radius: 21,
-                        backgroundColor: Theme.of(context)
-                            .colorScheme
-                            .secondary
-                            .withOpacity(0.3),
-                        child: IconButton(
-                          onPressed: _createStory,
-                          icon: const Icon(FontAwesomeIcons.plus),
+                    BackdropFilter(
+                        filter: ImageFilter.blur(sigmaX: 2, sigmaY: 2),
+                        child: Container(
+                          color: Colors.black.withOpacity(0.2),
+                        )),
+                    Column(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Text(
+                            "Add story",
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
                         ),
-                      ),
-                    )),
+                        Center(
+                            child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8.0, vertical: 4.0),
+                          child: CircleAvatar(
+                            radius: 21,
+                            backgroundColor: Theme.of(context)
+                                .colorScheme
+                                .secondary
+                                .withOpacity(0.3),
+                            child: IconButton(
+                              onPressed: _createStory,
+                              icon: const Icon(FontAwesomeIcons.plus),
+                            ),
+                          ),
+                        )),
+                      ],
+                    )
                   ],
-                )
-              ],
-            ),
+                ),
+              ),
+              StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+                stream: getStories(FirebaseAuth.instance.currentUser!.uid),
+                builder: (context, snapshot) {
+                  if (snapshot.hasData) {
+                    final docs = snapshot.data!;
+                    final stories =
+                        docs.docs.map((e) => Story.fromJson(e.data())).toList();
+                    if (stories.isEmpty) {
+                      return const SizedBox.shrink();
+                    }
+                    return SmallStoryWidget(
+                      stories: stories,
+                    );
+                  } else {
+                    return const SizedBox.shrink();
+                  }
+                },
+              ),
+            ],
           );
         }
-        final followerId = followerIds[index];
+        final followerId = followerIds[index - 1];
         return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
           stream: getStories(followerId),
           builder: (context, snapshot) {

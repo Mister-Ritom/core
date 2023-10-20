@@ -6,6 +6,7 @@ import 'package:core/utils/models/post_model.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../../utils/models/user_model.dart';
 import '../pages/user_details_page.dart';
@@ -210,10 +211,21 @@ class _SmallImagePostState extends State<SmallImagePost> {
               ),
               buildButton(context, FontAwesomeIcons.comment,
                   "${snapshot.data?["comments"] ?? 0}  Comments",
-                  onClick: () {}),
+                  onClick: () {
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => PostScreen(
+                              postId: widget.post.id,
+                            )));
+                  }),
               buildButton(context, FontAwesomeIcons.eye,
                   "${snapshot.data?["views"] ?? 0}"),
-              buildButton(context, FontAwesomeIcons.share, null),
+              buildButton(context, FontAwesomeIcons.share, null,
+                onClick: () {
+                  Share.share("Check out this post on Core \n https://core.ritom.site/post/${widget.post.id}");
+                },
+              ),
             ],
           );
         });

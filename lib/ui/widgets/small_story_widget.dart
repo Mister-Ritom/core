@@ -4,14 +4,13 @@ import 'package:core/utils/models/user_model.dart';
 import 'package:flutter/material.dart';
 
 class SmallStoryWidget extends StatefulWidget {
-
   final List<Story> stories;
   const SmallStoryWidget({super.key, required this.stories});
 
   @override
-  State<StatefulWidget> createState()=> _StoryState();
-
+  State<StatefulWidget> createState() => _StoryState();
 }
+
 class _StoryState extends State<SmallStoryWidget> {
   @override
   Widget build(BuildContext context) {
@@ -20,18 +19,19 @@ class _StoryState extends State<SmallStoryWidget> {
       width: 92,
       height: 102,
       decoration: BoxDecoration(
-        border: Border.all(color: Theme.of(context).colorScheme.primary,width: 1),
-        borderRadius: BorderRadius.circular(16)
-      ),
+          border: Border.all(
+              color: Theme.of(context).colorScheme.primary, width: 1),
+          borderRadius: BorderRadius.circular(16)),
       child: Stack(
         children: [
-          if (story.image!=null)
-            Center(child: Image.network(
+          if (story.image != null)
+            Center(
+                child: Image.network(
               story.image!,
               fit: BoxFit.cover,
               width: 92,
-              height: 100,)
-            ),
+              height: 100,
+            )),
           createStoryInfo(),
         ],
       ),
@@ -42,15 +42,18 @@ class _StoryState extends State<SmallStoryWidget> {
     final story = widget.stories[0];
     return FutureBuilder<UserModel>(
       future: getUser(),
-      builder: (context,snapshot){
-        if (snapshot.hasError){
-          return const Center(child: Text("Something went wrong"),);
+      builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return const Center(
+            child: Text("Something went wrong"),
+          );
         }
-        if (snapshot.connectionState==ConnectionState.done) {
-          if (snapshot.hasData){
+        if (snapshot.connectionState == ConnectionState.done) {
+          if (snapshot.hasData) {
             final user = snapshot.data!;
-            return story.caption!=null?buildCaptionStack(story,user)
-                :buildUserStack(user);
+            return story.caption != null
+                ? buildCaptionStack(story, user)
+                : buildUserStack(user);
           }
         }
         return const SizedBox.shrink();
@@ -58,24 +61,11 @@ class _StoryState extends State<SmallStoryWidget> {
     );
   }
 
-  Widget buildCaptionStack(Story story,UserModel user) {
+  Widget buildCaptionStack(Story story, UserModel user) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.spaceAround,
       children: [
-        if (user.photoUrl!=null) Row(
-          children: [
-            CircleAvatar(
-              radius: 7,
-              foregroundImage: NetworkImage(user.photoUrl!),
-            ),
-            Text(
-              user.name,
-              maxLines: 1,
-              style: Theme.of(context).textTheme.bodySmall,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
-        ) else Text(
+        Text(
           user.name,
           maxLines: 1,
           style: Theme.of(context).textTheme.bodySmall,
@@ -92,7 +82,7 @@ class _StoryState extends State<SmallStoryWidget> {
   }
 
   Widget buildUserStack(user) {
-    if (user.photoUrl!=null) {
+    if (user.photoUrl != null) {
       return Column(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
@@ -109,7 +99,7 @@ class _StoryState extends State<SmallStoryWidget> {
         ],
       );
     } else {
-        return Text(
+      return Text(
         user.name,
         maxLines: 1,
         style: Theme.of(context).textTheme.bodySmall,
@@ -119,10 +109,11 @@ class _StoryState extends State<SmallStoryWidget> {
   }
 
   Future<UserModel> getUser() async {
-    final userCol = FirebaseFirestore.instance.collection('users')
+    final userCol = FirebaseFirestore.instance
+        .collection('users')
         .doc(widget.stories[0].uploaderId);
-    return userCol.get().then((doc) =>
-        UserModel.fromJson(doc.data() as Map<String, dynamic>));
+    return userCol
+        .get()
+        .then((doc) => UserModel.fromJson(doc.data() as Map<String, dynamic>));
   }
-
 }

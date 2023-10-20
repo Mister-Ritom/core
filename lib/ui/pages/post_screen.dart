@@ -7,6 +7,7 @@ import 'package:core/utils/models/user_model.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 
 class PostScreen extends StatefulWidget {
@@ -20,7 +21,15 @@ class PostScreen extends StatefulWidget {
 
 class _PostScreenState extends State<PostScreen> {
 
-  final commentController = TextEditingController();
+  late TextEditingController commentController;
+  late FocusNode focusNode;
+
+  @override
+  void initState() {
+    commentController = TextEditingController();
+    focusNode = FocusNode();
+    super.initState();
+  }
 
   Future<Map<String, int>> getDetails() async {
     final likesCol = FirebaseFirestore.instance
@@ -159,12 +168,12 @@ class _PostScreenState extends State<PostScreen> {
   }
 
   Widget buildCommentBox() {
-    //return a textfield for commenting with some decoration
     return Align(
       alignment: Alignment.bottomCenter,
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         child: TextField(
+          focusNode: focusNode,
           controller: commentController,
           maxLines: 6,
           minLines: 1,
@@ -187,7 +196,7 @@ class _PostScreenState extends State<PostScreen> {
             contentPadding: const EdgeInsets.all(0),
             suffixIcon: IconButton(
               onPressed: addComment,
-              icon: const Icon(Icons.send),
+              icon: const Icon(FontAwesomeIcons.comment),
             ),
           ),
         ),
@@ -241,14 +250,17 @@ class _PostScreenState extends State<PostScreen> {
                     }
                 ),
                 IconButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      focusNode.requestFocus();
+                    },
                     icon: const Icon(FontAwesomeIcons.comment)),
                 Text(details['comments'].toString()),
-                IconButton(
-                    onPressed: () {}, icon: const Icon(FontAwesomeIcons.eye)),
+                const Icon(FontAwesomeIcons.eye),
                 Text(details['views'].toString()),
                 IconButton(
-                    onPressed: () {}, icon: const Icon(FontAwesomeIcons.share)),
+                    onPressed: () {
+                      Share.share("Check out this post on Core \n https://core.ritom.site/post/${widget.postId}");
+                    }, icon: const Icon(FontAwesomeIcons.share)),
               ],
             ),
           ),
@@ -345,6 +357,7 @@ class _PostScreenState extends State<PostScreen> {
       },
     );
   }
+
   DocumentSnapshot<Map<String,dynamic>>? lastCommentDocument;
   Stream<QuerySnapshot<Map<String, dynamic>>> getCommentStream() {
     if (lastCommentDocument == null) {

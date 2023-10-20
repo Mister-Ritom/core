@@ -14,6 +14,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "357937556372-rgk14dnfresmbaprnt5j4niejmbquija.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "site.ritom.core",
+            "certificate_hash": "628f601e05df38911b03bf73a7dac097442620ba"
+          }
+        },
+        {
           "client_id": "357937556372-ta3oa95iqh9b5gj0qjk776lr9qnjk2g8.apps.googleusercontent.com",
           "client_type": 3
         }

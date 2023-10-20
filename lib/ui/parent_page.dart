@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:core/pages/home_page.dart';
+import 'package:core/pages/notification_page.dart';
 import 'package:core/pages/search_page.dart';
 import 'package:core/ui/pages/introduction_page.dart';
 import 'package:core/ui/pages/user_details_page.dart';
@@ -15,7 +16,6 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
 
-import '../pages/chat_page.dart';
 import '../providers/user_provider.dart';
 import '../utils/models/post_model.dart';
 import 'dialog/create_dialog.dart';
@@ -96,7 +96,7 @@ class _ParentPageState extends State<ParentPage> {
     NavigationButton(
       icon: const Icon(FontAwesomeIcons.bell),
       label: 'Notifications',
-      page: const ChatPage(key: ValueKey<int>(2)),
+      page: const NotificationPage(key: ValueKey<int>(2)),
     ),
     NavigationButton(
       icon: FirebaseAuth.instance.currentUser != null &&
@@ -168,7 +168,6 @@ class _ParentPageState extends State<ParentPage> {
               Provider.of<AuthProvider>(context, listen: false);
           await authProvider.signOut();
         }
-        
       });
     }
     return const SizedBox.shrink();

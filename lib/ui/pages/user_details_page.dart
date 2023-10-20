@@ -1,4 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:core/ui/pages/post_screen.dart';
+import 'package:core/ui/widgets/small_text_post.dart';
 import 'package:core/utils/models/user_model.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -113,6 +115,15 @@ class _UserDetailsState extends State<UserDetails> {
     }
 
     return mostLikedPostId;
+  }
+
+  Future<List<Post>> getPosts() async {
+    String id = widget.user;
+    final postCollection = FirebaseFirestore.instance
+        .collection('posts')
+        .where("uploaderId", isEqualTo: id);
+    final postList = await postCollection.get();
+    return postList.docs.map((e) => Post.fromJson(e.data())).toList();
   }
 
   Future<Post?> getBestPost() async {
@@ -252,51 +263,69 @@ class _UserDetailsState extends State<UserDetails> {
   }
 
   Widget buildTopAppbar() {
-    return AppBar(
-      systemOverlayStyle: const SystemUiOverlayStyle(
-        statusBarBrightness: Brightness.light,
-        statusBarColor: Colors.transparent,
-        statusBarIconBrightness: Brightness.light,
-      ),
-      primary: false,
-      forceMaterialTransparency: true,
-      leading: Padding(
-        padding: const EdgeInsets.only(left: 8.0, top: 8),
-        child: CircleAvatar(
-          maxRadius: 14,
-          minRadius: 14,
-          backgroundColor:
-              Theme.of(context).colorScheme.primary.withOpacity(0.3),
-          child: IconButton(
-            onPressed: () {
-              Navigator.pop(context);
-            },
-            icon: const Icon(
-              Icons.arrow_back,
-              size: 32,
-              color: Colors.white,
+    return Padding(
+      padding: const EdgeInsets.only(top: 16),
+      child: AppBar(
+        systemOverlayStyle: const SystemUiOverlayStyle(
+          statusBarBrightness: Brightness.light,
+          statusBarColor: Colors.transparent,
+          statusBarIconBrightness: Brightness.light,
+        ),
+        primary: false,
+        forceMaterialTransparency: true,
+        leading: Padding(
+          padding: const EdgeInsets.only(left: 8.0, top: 8),
+          child: CircleAvatar(
+            maxRadius: 14,
+            minRadius: 14,
+            backgroundColor:
+                Theme.of(context).colorScheme.primary.withOpacity(0.3),
+            child: IconButton(
+              onPressed: () {
+                Navigator.maybePop(context);
+              },
+              icon: const Icon(
+                Icons.arrow_back,
+                size: 32,
+                color: Colors.white,
+              ),
             ),
           ),
         ),
+        actions: [
+          StreamBuilder<DocumentSnapshot>(
+              stream: getFollowingStream(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const SizedBox.shrink();
+                }
+                if (snapshot.hasError || !snapshot.hasData) {
+                  return const SizedBox.shrink();
+                }
+                final doc = snapshot.data;
+                if (doc == null) return const SizedBox.shrink();
+                final isFollowing = doc.exists;
+                return IconButton(
+                  onPressed: followUser,
+                  icon: Icon(
+                    isFollowing
+                        ? FontAwesomeIcons.userCheck
+                        : FontAwesomeIcons.userPlus,
+                    size: 18,
+                    color: Colors.white,
+                  ),
+                );
+              }),
+          IconButton(
+            onPressed: () {},
+            icon: Icon(
+              Icons.adaptive.more,
+              size: 22,
+              color: Colors.white,
+            ),
+          )
+        ],
       ),
-      actions: [
-        IconButton(
-          onPressed: () {},
-          icon: const Icon(
-            FontAwesomeIcons.userPlus,
-            size: 18,
-            color: Colors.white,
-          ),
-        ),
-        IconButton(
-          onPressed: () {},
-          icon: const Icon(
-            Icons.more_vert,
-            size: 22,
-            color: Colors.white,
-          ),
-        )
-      ],
     );
   }
 
@@ -379,7 +408,145 @@ class _UserDetailsState extends State<UserDetails> {
               style: ElevatedButton.styleFrom(
                 elevation: 24,
               ),
-              onPressed: () {},
+              onPressed: () {
+                //show a bottom sheet with all the posts
+                showModalBottomSheet(
+                    context: context,
+                    builder: (context) {
+                      return FutureBuilder<List<Post>>(
+                          future: getPosts(),
+                          builder: (context, snapshot) {
+                            if (snapshot.connectionState ==
+                                ConnectionState.waiting) {
+                              return const Center(
+                                child: CircularProgressIndicator(),
+                              );
+                            }
+                            if (snapshot.hasError || !snapshot.hasData) {
+                              return const SizedBox.shrink();
+                            }
+                            final posts = snapshot.data;
+                            if (posts == null) return const SizedBox.shrink();
+                            return GridView.builder(
+                                itemCount: posts.length,
+                                itemBuilder: (context, index) {
+                                  final post = posts[index];
+                                  if (post.image == null) {
+                                    return GestureDetector(
+                                      onTap: () {
+                                        Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                                builder: (context) =>
+                                                    SmallTextPost(post: post)));
+                                      },
+                                      child: Center(
+                                          child: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.center,
+                                        children: [
+                                          Text(
+                                            post.caption,
+                                            textAlign: TextAlign.center,
+                                          ),
+                                          const SizedBox(
+                                            height: 10,
+                                          ),
+                                          ElevatedButton(
+                                            style: ElevatedButton.styleFrom(
+                                                elevation: 24),
+                                            onPressed: () {
+                                              Navigator.push(
+                                                  context,
+                                                  MaterialPageRoute(
+                                                      builder: (context) =>
+                                                          SmallTextPost(
+                                                              post: post)));
+                                            },
+                                            child: const Text(
+                                              "Check out the post to know more...",
+                                              textAlign: TextAlign.center,
+                                            ),
+                                          ),
+                                        ],
+                                      )),
+                                    );
+                                  } else {
+                                    return GestureDetector(
+                                      onTap: () {
+                                        Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                                builder: (context) =>
+                                                    PostScreen(
+                                                      postId: post.id,
+                                                    )));
+                                      },
+                                      child: ClipRRect(
+                                          borderRadius:
+                                              BorderRadius.circular(16),
+                                          child: Stack(
+                                            children: [
+                                              SizedBox(
+                                                width: MediaQuery.of(context)
+                                                        .size
+                                                        .width /
+                                                    2,
+                                                height: MediaQuery.of(context)
+                                                        .size
+                                                        .width /
+                                                    2,
+                                                child: Image.network(
+                                                  post.image!,
+                                                  fit: BoxFit.cover,
+                                                ),
+                                              ),
+                                              //align the caption at the bottom with only the first 25 characters visible
+                                              Align(
+                                                alignment:
+                                                    Alignment.bottomCenter,
+                                                child: Container(
+                                                  color: Theme.of(context)
+                                                      .colorScheme
+                                                      .surface,
+                                                  child: Padding(
+                                                    padding:
+                                                        const EdgeInsets.all(
+                                                            8.0),
+                                                    //if the caption is more than 25 return the first 25 else return the caption
+                                                    child: Text(
+                                                      post.caption.length > 35
+                                                          ? "${post.caption.substring(0, 35)}..."
+                                                          : post.caption,
+                                                      style: Theme.of(context)
+                                                          .textTheme
+                                                          .bodyMedium!
+                                                          .copyWith(
+                                                              color: Theme.of(
+                                                                      context)
+                                                                  .colorScheme
+                                                                  .primary),
+                                                    ),
+                                                  ),
+                                                ),
+                                              )
+                                            ],
+                                          )),
+                                    );
+                                  }
+                                },
+                                gridDelegate:
+                                    const SliverGridDelegateWithFixedCrossAxisCount(
+                                  childAspectRatio: 1,
+                                  crossAxisCount: 2,
+                                  crossAxisSpacing: 8,
+                                  mainAxisSpacing: 8,
+                                ));
+                          });
+                    });
+              },
               child: Text(
                 "Check out my other posts",
                 style: Theme.of(context)
@@ -500,11 +667,19 @@ class _UserDetailsState extends State<UserDetails> {
               if (!isFollowing) {
                 return ElevatedButton(
                   onPressed: followUser,
-                  //TODO change color on tap
-                  style: ElevatedButton.styleFrom(
-                      backgroundColor: Theme.of(context).colorScheme.primary,
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16))),
+                  style: ButtonStyle(
+                      backgroundColor:
+                          MaterialStateProperty.resolveWith<Color?>(
+                        (Set<MaterialState> states) {
+                          if (states.contains(MaterialState.pressed)) {
+                            return Theme.of(context).colorScheme.inverseSurface;
+                          } else {
+                            return Theme.of(context).colorScheme.primary;
+                          }
+                        },
+                      ),
+                      shape: MaterialStateProperty.all(RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16)))),
                   child: Row(
                     children: [
                       const Icon(
@@ -528,10 +703,18 @@ class _UserDetailsState extends State<UserDetails> {
               }
               return ElevatedButton(
                 onPressed: followUser,
-                style: ElevatedButton.styleFrom(
-                    backgroundColor: Theme.of(context).colorScheme.primary,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16))),
+                style: ButtonStyle(
+                    backgroundColor: MaterialStateProperty.resolveWith<Color?>(
+                      (Set<MaterialState> states) {
+                        if (states.contains(MaterialState.pressed)) {
+                          return Theme.of(context).colorScheme.inverseSurface;
+                        } else {
+                          return Theme.of(context).colorScheme.primary;
+                        }
+                      },
+                    ),
+                    shape: MaterialStateProperty.all(RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16)))),
                 child: Row(
                   children: [
                     const Icon(

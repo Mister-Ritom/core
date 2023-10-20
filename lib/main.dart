@@ -4,6 +4,7 @@ import 'package:core/providers/theme.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import 'firebase_options.dart';
 
@@ -45,6 +46,9 @@ class MaterialAppWithTheme extends StatelessWidget {
       theme: ThemeData.light(useMaterial3: true).copyWith(
         colorScheme: ColorScheme.fromSeed(
             seedColor: Colors.indigo, brightness: Brightness.light),
+        textTheme: ThemeData.dark().textTheme.apply(
+              fontFamily: GoogleFonts.poppins().fontFamily,
+            ),
         bottomNavigationBarTheme: const BottomNavigationBarThemeData(
           showUnselectedLabels: false,
           type: BottomNavigationBarType.fixed,
@@ -55,6 +59,9 @@ class MaterialAppWithTheme extends StatelessWidget {
         ),
       ),
       darkTheme: ThemeData.dark(useMaterial3: true).copyWith(
+        textTheme: ThemeData.dark().textTheme.apply(
+              fontFamily: GoogleFonts.poppins().fontFamily,
+            ),
         bottomNavigationBarTheme: const BottomNavigationBarThemeData(
           showUnselectedLabels: false,
           type: BottomNavigationBarType.fixed,
