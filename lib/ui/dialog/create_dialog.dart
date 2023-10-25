@@ -8,7 +8,7 @@ import 'dart:io';
 import '../../utils/models/post_model.dart';
 
 class CreatePostDialog extends StatefulWidget {
-  final Function(Post,File?) onSave;
+  final Function(Post, File?) onSave;
 
   const CreatePostDialog({super.key, required this.onSave});
 
@@ -24,41 +24,44 @@ class _CreatePostDialogState extends State<CreatePostDialog> {
   Widget buildImagePost() {
     return Column(
       children: [
-        imageFile != null? AspectRatio(
-          aspectRatio: 4/3,
-          child: Image.file(
-            File(imageFile!.path,),
-            fit: BoxFit.cover,
-          ),
-        )
-        :
-        TextButton(
-            onPressed: () async {
-              ImagePickerPlus picker = ImagePickerPlus(context);
+        imageFile != null
+            ? AspectRatio(
+                aspectRatio: 4 / 3,
+                child: Image.file(
+                  File(
+                    imageFile!.path,
+                  ),
+                  fit: BoxFit.cover,
+                ),
+              )
+            : TextButton(
+                onPressed: () async {
+                  ImagePickerPlus picker = ImagePickerPlus(context);
 
-              SelectedImagesDetails? details =
-              await picker.pickImage(source: ImageSource.gallery);
-              if (details == null || details.selectedFiles.isEmpty) return;
-              setState(() {
-                imageFile = details.selectedFiles[0].selectedFile;
-              });
-            },
-            child: Container(
-              width: 170,
-              padding: const EdgeInsets.all(8.0),
-              decoration: BoxDecoration(
-                border: Border.all(color: Theme.of(context).colorScheme.primary),
-                borderRadius: BorderRadius.circular(10),
+                  SelectedImagesDetails? details =
+                      await picker.pickImage(source: ImageSource.gallery);
+                  if (details == null || details.selectedFiles.isEmpty) return;
+                  setState(() {
+                    imageFile = details.selectedFiles[0].selectedFile;
+                  });
+                },
+                child: Container(
+                  width: 170,
+                  padding: const EdgeInsets.all(8.0),
+                  decoration: BoxDecoration(
+                    border: Border.all(
+                        color: Theme.of(context).colorScheme.primary),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      Icon(FontAwesomeIcons.image),
+                      Text('Pick an image'),
+                    ],
+                  ),
+                ),
               ),
-              child: const Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  Icon(FontAwesomeIcons.image),
-                  Text('Pick an image'),
-                ],
-              ),
-            ),
-        ),
         const SizedBox(height: 20),
         TextField(
           controller: _captionController,
@@ -90,7 +93,6 @@ class _CreatePostDialogState extends State<CreatePostDialog> {
     );
   }
 
-
   Row buildPostRow() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.end,
@@ -118,7 +120,7 @@ class _CreatePostDialogState extends State<CreatePostDialog> {
               image: null,
             );
 
-            widget.onSave(post,imageFile);
+            widget.onSave(post, imageFile);
             Navigator.of(context).pop();
           },
           child: const SizedBox(
@@ -169,7 +171,8 @@ class _CreatePostDialogState extends State<CreatePostDialog> {
                   children: <Widget>[
                     const Text(
                       'Create a Post',
-                      style: TextStyle(fontSize: 20.0, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                          fontSize: 20.0, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 10),
                     buildImagePost(),
