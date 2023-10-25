@@ -58,18 +58,17 @@ class DefaultFirebaseOptions {
     appId: '1:357937556372:android:b0b127f69c2d962341fd81',
     messagingSenderId: '357937556372',
     projectId: 'core-blaze',
-    storageBucket: 'core-blaze.appspot.com',
+    storageBucket: 'core-blaze.appspot.com'
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyBo3XFuV8zhrKD4pVEUhdNY-9FISk5WZ-Q',
-    appId: '1:357937556372:ios:c3ecc789b24b6b5241fd81',
-    messagingSenderId: '357937556372',
-    projectId: 'core-blaze',
-    storageBucket: 'core-blaze.appspot.com',
-    androidClientId: '357937556372-rgk14dnfresmbaprnt5j4niejmbquija.apps.googleusercontent.com',
-    iosClientId: '357937556372-uqid78qt0vanpbknpehh3lheamptc20i.apps.googleusercontent.com',
     iosBundleId: 'site.ritom.core',
+    appId: '1:357937556372:ios:c3ecc789b24b6b5241fd81',
+    storageBucket: 'core-blaze.appspot.com',
+    messagingSenderId: '357937556372',
+    iosClientId: '357937556372-uqid78qt0vanpbknpehh3lheamptc20i.apps.googleusercontent.com',
+    projectId: 'core-blaze'
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
